@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eldercart - Products</title>
+
+    <style>
+        body {
+            margin: 0;
+            background: #f7efe3;
+            font-family: Arial, sans-serif;
+            font-weight: bold;
+        }
+
+        /* NAV BAR */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #8a4616;
+            padding: 12px 20px;
+        }
+        .navbar img { height: 90px; }
+
+        .nav-right {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .nav-right a,
+        .nav-right select,
+        #userNameBox,
+        #logoutBtn {
+            padding: 10px 18px;
+            font-size: 18px;
+            background: white;
+            color: #8a4616;
+            border-radius: 6px;
+            font-weight: bold;
+            text-decoration: none;
+            cursor: pointer;
+            transition: 0.25s;
+        }
+        .nav-right a:hover,
+        .nav-right select:hover,
+        #userNameBox:hover,
+        #logoutBtn:hover {
+            background: #8a4616;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        /* PRODUCT GRID */
+        .products-container {
+            width: 95%;
+            margin: 30px auto;
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 20px;
+        }
+
+        .product-box {
+            background: white;
+            padding: 12px;
+            border-radius: 10px;
+            border: 3px solid #8a4616;
+            text-align: center;
+            position: relative;
+        }
+
+        .product-box img {
+            width: 100%;
+            height: 120px;
+            object-fit: contain;
+            transform-origin: center;
+            animation: shake 2200ms ease-in-out infinite;
+            position: relative;
+            z-index: 1;
+        }
+
+        @keyframes shake {
+            0% { transform: translateY(0) rotate(0deg); }
+            15% { transform: translateY(-3px) rotate(-1deg); }
+            30% { transform: translateY(2px) rotate(1deg); }
+            45% { transform: translateY(-2px) rotate(-0.5deg); }
+            60% { transform: translateY(1px) rotate(0.5deg); }
+            75% { transform: translateY(-1px) rotate(-0.3deg); }
+            100% { transform: translateY(0) rotate(0deg); }
+        }
+
+        .discount-badge{
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #8a4616;
+            color: white;
+            padding: 6px 8px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 14px;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.14);
+            z-index: 5; /* ensure badge appears above transformed image */
+        }
+
+        .oldprice {
+            text-decoration: line-through;
+            color: red;
+        }
+
+        .qty-box {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .qty-btn {
+            padding: 6px 12px;
+            font-size: 18px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            color: white;
+        }
+
+        .green { background: green; }
+        .red { background: red; }
+
+        .add-btn {
+            background: brown;
+            color: white;
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+        /* Add-to-cart popup */
+        .addcart-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:12000}
+        .addcart-popup{pointer-events:auto;border:4px solid #8a4616;background:#fff;padding:18px 22px;border-radius:12px;box-shadow:0 18px 40px rgba(0,0,0,0.18);display:flex;flex-direction:column;align-items:center;min-width:260px;transform:scale(.75);opacity:0;transition:transform 320ms cubic-bezier(.2,.9,.2,1),opacity 220ms ease}
+        .addcart-popup.visible{transform:scale(1);opacity:1}
+        .addcart-icon{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#3fb36f,#1f8f4a);display:flex;align-items:center;justify-content:center;color:#fff;font-size:34px;margin-bottom:10px;box-shadow:0 8px 20px rgba(31,143,74,0.22)}
+        .addcart-title{font-weight:bold;color:#333;font-size:18px;text-align:center}
+    </style>
+</head>
+
+<body>
+
+<div class="navbar">
+    <div class="logo">
+        <a href="index.html"><img src="logo.png"></a>
+    </div>
+
+    <div class="nav-right">
+        <a href="index.html">HOME</a>
+        <a href="products.html">PRODUCTS</a>
+        <a href="cart.html">CART</a>
+        <a href="signup.html" id="loginBtn">SIGN UP / LOG IN</a>
+
+        <a id="userNameBox" href="account.html" style="display:none;"></a>
+        <a id="logoutBtn" onclick="logout()" style="display:none;">LOGOUT</a>
+    </div>
+</div>
+
+<h1 style="text-align:center; color:#8a4616; margin-top:20px;">OUR PRODUCTS</h1>
+
+<div class="products-container" id="productGrid"></div>
+<script>
+let products = [
+    {name:"Digital Blood Pressure Monitor", img:"bp_monitor.png", price:1500},
+    {name:"Blood Glucose Monitor", img:"glucose_monitor.png", price:900},
+    {name:"Heating Pad", img:"heating_pad.png", price:650},
+    {name:"Orthopedic Support Belt", img:"support_belt.png", price:1200},
+    {name:"Walking Stick", img:"walking_stick.png", price:400},
+    {name:"Wheel Chair", img:"wheelchair.png", price:7000},
+    {name:"Toilet Safety Frame", img:"toilet_frame.png", price:1800},
+    {name:"Hearing Aid", img:"hearing_aid.png", price:3500},
+    {name:"Bed Protector", img:"bed_protector.png", price:500},
+    {name:"Adjustable Bed", img:"adjustable_bed.png", price:9000},
+    {name:"Handrail for Stairs", img:"handrail.png", price:1600},
+    {name:"Foldable Walking Cane", img:"foldable_cane.png", price:600}
+];
+
+let user = JSON.parse(localStorage.getItem("elderUser"));
+let ageDiscount = 0;
+
+if (user) {
+    if (user.age === "60+") ageDiscount = 20;
+    if (user.age === "70+") ageDiscount = 35;
+    if (user.age === "80+") ageDiscount = 45;
+}
+
+function loadProducts() {
+    let html = "";
+
+    products.forEach((p, i) => {
+        let discounted = p.price - (p.price * ageDiscount / 100);
+        let badgeHtml = ageDiscount ? `<div class="discount-badge">-${ageDiscount}%</div>` : '';
+
+        html += `
+            <div class="product-box">
+                ${badgeHtml}
+                <img src="${p.img}">
+                <h3>${p.name}</h3>
+
+                <p>
+                    <span class="oldprice">₹${p.price}</span><br>
+                    <span style="color:green;">₹${discounted.toFixed(0)}</span>
+                </p>
+
+                <p style="color:green;">Discount: ${ageDiscount}%</p>
+
+                <div class="qty-box">
+                    <button class="qty-btn red" onclick="dec(${i})">-</button>
+                    <span id="qty${i}">0</span>
+                    <button class="qty-btn green" onclick="inc(${i})">+</button>
+                </div>
+
+                <button class="add-btn" onclick="addToCart(${i})">Add to Cart</button>
+            </div>
+        `;
+    });
+
+    document.getElementById("productGrid").innerHTML = html;
+}
+
+let quantities = Array(products.length).fill(0);
+
+function inc(i) {
+    quantities[i]++;
+    document.getElementById("qty"+i).innerText = quantities[i];
+}
+
+function dec(i) {
+    if (quantities[i] > 0) quantities[i]--;
+    document.getElementById("qty"+i).innerText = quantities[i];
+}
+
+function addToCart(i) {
+    if (quantities[i] === 0) return alert("Select quantity first!");
+
+    let original = products[i].price;
+    let discounted = original - (original * ageDiscount / 100);
+
+    let cart = JSON.parse(localStorage.getItem("elderCart")) || [];
+
+    cart.push({
+        name: products[i].name,
+        qty: quantities[i],
+        realPrice: original,      // original price added
+        price: discounted         // discounted price added
+    });
+
+    localStorage.setItem("elderCart", JSON.stringify(cart));
+    showAddToCartPopup();
+}
+
+function showAddToCartPopup(msg){
+    msg = msg || 'Added to cart!';
+    let overlay = document.getElementById('addCartOverlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'addCartOverlay';
+        overlay.className = 'addcart-overlay';
+        overlay.innerHTML = `
+            <div class="addcart-popup" role="status" aria-live="polite">
+                <div class="addcart-icon">✓</div>
+                <div class="addcart-title">${msg}</div>
+            </div>`;
+        document.body.appendChild(overlay);
+    }
+
+    const popup = overlay.querySelector('.addcart-popup');
+    // trigger animation
+    requestAnimationFrame(()=>{ popup.classList.add('visible'); overlay.style.pointerEvents = 'auto'; });
+
+    // auto-hide after 1.4s
+    clearTimeout(window._addCartPopupTimeout);
+    window._addCartPopupTimeout = setTimeout(()=>{
+        popup.classList.remove('visible');
+        overlay.style.pointerEvents = 'none';
+    }, 1400);
+}
+function checkUser() {
+    if (user) {
+        document.getElementById("loginBtn").style.display = "none";
+        document.getElementById("userNameBox").style.display = "inline-block";
+        document.getElementById("userNameBox").innerText = "👤 " + user.fullname;
+        document.getElementById("logoutBtn").style.display = "inline-block";
+    }
+}
+
+function logout() {
+    localStorage.removeItem("elderUser");
+    // clear cart on logout
+    try { localStorage.removeItem('elderCart'); } catch(e) {}
+    window.location.reload();
+}
+
+checkUser();
+loadProducts();
+</script>
+
+<!-- nav-discount.js removed -->
+
+</body>
+</html>

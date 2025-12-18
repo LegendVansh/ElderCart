@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eldercart - Cart</title>
+
+    <style>
+        body {
+            margin: 0;
+            background: #f7efe3;
+            font-family: Arial, sans-serif;
+            font-weight: bold;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #8a4616;
+            padding: 12px 20px;
+        }
+        .navbar img { height: 90px; }
+
+        .nav-right {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .nav-right a,
+        #loginBtn,
+        #logoutBtn,
+        #userNameBox,
+        select {
+            padding: 10px 18px;
+            font-size: 18px;
+            background: white;
+            color: #8a4616;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        h1 {
+            text-align: center;
+            color: #8a4616;
+            margin-top: 20px;
+        }
+
+        .main {
+            width: 95%;
+            margin: auto;
+            margin-top: 25px;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 25px;
+        }
+
+        .cart-box {
+            background: white;
+            padding: 20px;
+            border: 3px solid #8a4616;
+            border-radius: 12px;
+        }
+
+        .item {
+            border-bottom: 2px solid #b57f52;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+
+        .qty-btn {
+            padding: 6px 12px;
+            font-size: 18px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            color: white;
+        }
+        .red { background: red; }
+        .green { background: green; }
+
+        .remove-btn {
+            margin-top: 10px;
+            padding: 8px 16px;
+            background: #8a4616;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            border: none;
+        }
+
+        .summary {
+            background: white;
+            padding: 20px;
+            border: 3px solid #8a4616;
+            border-radius: 12px;
+            height: fit-content;
+        }
+
+        .checkout-btn {
+            width: 100%;
+            padding: 14px 0;
+            background: #b0332a;
+            color: white;
+            font-size: 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="navbar">
+    <div class="logo"><a href="index.html"><img src="logo.png"></a></div>
+
+    <div class="nav-right">
+        <a href="index.html">HOME</a>
+        <a href="products.html">PRODUCTS</a>
+        <a href="cart.html">CART</a>
+
+        <a id="loginBtn" href="signup.html">SIGN UP / LOG IN</a>
+        <a id="userNameBox" href="account.html" style="display:none;"></a>
+        <a id="logoutBtn" onclick="logout()" style="display:none;">LOGOUT</a>
+    </div>
+</div>
+
+<h1>YOUR CART</h1>
+
+<div class="main">
+
+    <div class="cart-box" id="cartItems"></div>
+
+    <div class="summary" id="priceSummary"></div>
+
+</div>
+<script>
+let user = JSON.parse(localStorage.getItem("elderUser"));
+let cart = JSON.parse(localStorage.getItem("elderCart")) || [];
+
+let ageDiscount = 0;
+if (user) {
+    if (user.age === "60+") ageDiscount = 20;
+    else if (user.age === "70+") ageDiscount = 35;
+    else if (user.age === "80+") ageDiscount = 45;
+
+    document.getElementById("loginBtn").style.display = "none";
+    document.getElementById("userNameBox").style.display = "inline-block";
+    document.getElementById("userNameBox").innerText = "👤 " + user.fullname;
+    document.getElementById("logoutBtn").style.display = "inline-block";
+}
+
+function logout() {
+    localStorage.removeItem("elderUser");
+    // clear cart on logout
+    try { localStorage.removeItem('elderCart'); } catch(e) {}
+    window.location.reload();
+}
+
+/* ---------------- LOAD CART ---------------- */
+function loadCart() {
+    if (cart.length === 0) {
+        document.getElementById("cartItems").innerHTML =
+            `<p style="font-size:22px; color:#8a4616;">Your cart is empty</p>`;
+        document.getElementById("priceSummary").innerHTML = "";
+        return;
+    }
+
+    let box = "";
+
+    cart.forEach((item, i) => {
+
+        let realTotal = item.realPrice * item.qty;
+        let discountTotal = item.price * item.qty;
+
+        box += `
+        <div class="item">
+            <h2>${item.name}</h2>
+
+            <p>Real Price: ₹${realTotal}</p>
+            <p style="color:green;">Price After Discount: ₹${discountTotal.toFixed(2)}</p>
+
+            <div>
+                <button class="qty-btn red" data-skip-global-popup onclick="dec(${i})">-</button>
+                <span style="font-size:20px;"> ${item.qty} </span>
+                <button class="qty-btn green" data-skip-global-popup onclick="inc(${i})">+</button>
+            </div>
+
+            <button class="remove-btn" data-skip-global-popup onclick="removeItem(${i})">Remove</button>
+        </div>`;
+    });
+
+    document.getElementById("cartItems").innerHTML = box;
+    updateSummary();
+}
+
+/* ---------------- SUMMARY ---------------- */
+function updateSummary() {
+    // per-item discount: compute discount per item (base = realPrice || price),
+    // then sum the post-discount item totals. Finally apply 1% tax to subtotal.
+    const discountPercent = ageDiscount || 0;
+    let totalBase = 0;
+    let totalDiscount = 0;
+    let subtotalAfter = 0;
+
+    cart.forEach(item => {
+        const baseUnit = (item.realPrice != null) ? item.realPrice : item.price;
+        const qty = item.qty || 1;
+        const itemBaseTotal = baseUnit * qty;
+        const itemDiscount = itemBaseTotal * (discountPercent / 100);
+        const itemAfter = itemBaseTotal - itemDiscount;
+
+        totalBase += itemBaseTotal;
+        totalDiscount += itemDiscount;
+        subtotalAfter += itemAfter;
+    });
+
+    const tax = subtotalAfter * 0.01; // 1% tax
+    const final = subtotalAfter + tax;
+
+    document.getElementById("priceSummary").innerHTML = `
+        <h2>Price Summary</h2>
+
+        <p>Total Price: ₹${totalBase.toFixed(2)}</p>
+        <p>Discount (${discountPercent}% per item): -₹${totalDiscount.toFixed(2)}</p>
+        <p>Price After Discount: ₹${subtotalAfter.toFixed(2)}</p>
+        <p>Tax (1%): ₹${tax.toFixed(2)}</p>
+        <p>Delivery: FREE</p>
+        <hr>
+        <p style="font-size:22px;">Final Price: ₹${final.toFixed(2)}</p>
+
+        <button class="checkout-btn" data-skip-global-popup onclick="goToCheckout()">Checkout</button>
+
+    `;
+}
+
+/* ---------------- QTY + / - ---------------- */
+function inc(i) {
+    cart[i].qty++;
+    save();
+}
+
+function dec(i) {
+    if (cart[i].qty > 1) cart[i].qty--;
+    else cart.splice(i, 1);
+    save();
+}
+function removeItem(i) {
+    cart.splice(i, 1);
+    save();
+    // show popup only for explicit Remove actions
+    if(window.showGlobalPopup) showGlobalPopup('Removed from cart', '', {duration:900});
+}
+
+function save() {
+    localStorage.setItem("elderCart", JSON.stringify(cart));
+    loadCart();
+}
+function goToCheckout() {
+    if (cart.length === 0) {
+        alert("Your cart is empty!");
+        return;
+    }
+
+    window.location.href = "checkout.html";   // or payment.html / address.html
+}
+
+loadCart();
+</script>
+
+<script src="global-popup.js"></script>
+<!-- nav-discount.js removed -->
+</body>
+
+</html>

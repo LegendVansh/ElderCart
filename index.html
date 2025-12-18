@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eldercart</title>
+
+    <style>
+        .about-image {
+            width: 90%;
+            max-width: 900px;
+            display: block;
+            margin: 40px auto;
+            border-radius: 15px;
+            border: 6px solid #8B4513;
+        }
+
+        body {
+            margin: 0;
+            background-color: #f7efe3;
+            /* use old.png as the page background */
+            background-image: url('old.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            font-family: Arial, sans-serif;
+            font-weight: bold;
+            position: relative;
+        }
+
+        /* subtle brown fade overlay on top of the background image to improve
+           contrast for brown text above the image */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            /* brown tint gradient on top of a 50% white overlay to fade the background image */
+            background:
+                linear-gradient(180deg, rgba(138,70,22,0.28) 0%, rgba(138,70,22,0.12) 35%, rgba(247,239,227,0.04) 100%),
+                rgba(255,255,255,0.5);
+            background-blend-mode: normal;
+            z-index: 0;
+        }
+
+        /* make content layer appear above the overlay */
+        .navbar, .title-box, .content { position: relative; z-index: 1; }
+
+        /* NAV BAR */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #8a4616;
+            padding: 12px 20px;
+        }
+
+        .navbar img {
+            height: 90px;
+        }
+
+        .nav-right {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .nav-right a,
+        .nav-right select,
+        #userNameBox,
+        #logoutBtn {
+            padding: 10px 18px;
+            font-size: 18px;
+            background: white;
+            color: #8a4616;
+            border-radius: 6px;
+            font-weight: bold;
+            text-decoration: none;
+            cursor: pointer;
+            transition: 0.25s;
+        }
+
+        .nav-right a:hover,
+        .nav-right select:hover,
+        #userNameBox:hover,
+        #logoutBtn:hover {
+            background: #8a4616;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        /* TITLE BOX */
+        .title-box {
+            margin: 20px auto;
+            width: fit-content;
+            padding: 12px 30px;
+            background: white;
+            color: #8a4616;
+            border-radius: 10px;
+            border: 4px solid #8a4616;
+            font-size: 28px;
+        }
+
+        /* rotating discount messages under the title (sliding animation)
+           - inner span slides left to disappear, then new text slides in from right */
+            .discount-rotator{
+                margin:6px auto 18px auto; /* sit close below the title and center horizontally */
+                width:100%; /* span the body so it's clearly centered under the title */
+                max-width:900px;
+                padding:6px 14px;
+                font-size:22px; /* increased font for better readability */
+                border-radius:8px;
+                background:transparent;
+                color: rgb(0, 23, 124);
+                border: none;
+                font-weight:700;
+                display:block;
+                text-align:center; /* center inner text across the body */
+                overflow:hidden;
+                position:relative;
+                min-height:1.6em; /* allow taller line for larger font */
+            }
+        .discount-rotator .rotator-inner{
+            display:inline-block;
+            transform:translateX(0);
+            opacity:1;
+            transition: transform 480ms cubic-bezier(.2,.9,.2,1), opacity 160ms linear;
+            will-change: transform, opacity;
+            white-space:nowrap;
+        }
+
+        .content {
+            width: 90%;
+            margin: auto;
+            color: #3b0b0b; /* blackish maroon for paragraphs */
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        .lang-section {
+            margin-bottom: 40px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAVIGATION -->
+    <div class="navbar">
+
+        <!-- Remove old username left side -->
+        <span id="userNameDisplay" style="display:none;"></span>
+
+        <div class="logo">
+            <img src="logo.png">
+        </div>
+
+        <div class="nav-right">
+            <a href="index.html">HOME</a>
+            <a href="products.html">PRODUCTS</a>
+            <a href="cart.html">CART</a>
+
+            <a href="signup.html" id="loginBtn">SIGN UP / LOG IN</a>
+
+            <span id="userNameBox" style="display:none;"></span>
+
+            <a id="logoutBtn" onclick="logout()" style="display:none;">LOGOUT</a>
+
+            <select id="languageSwitcher">
+                <option value="en">English</option>
+                <option value="hi">Hindi</option>
+                <option value="pa">Punjabi</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="title-box">ELDERCART</div>
+    <div id="discountRotator" class="discount-rotator">Its time for your comfort 60+ (20% Discount!)</div>
+
+    <div class="content">
+
+        <!-- ============= ENGLISH ============= -->
+        <div id="en" class="lang-section">
+            <p>
+                Eldercart was created with the belief that seniors deserve technology designed with patience and clarity.
+                Unlike modern fast‑paced apps, Eldercart keeps everything simple, slow‑paced, and easy to understand.
+                Big buttons, clear layout, and gentle navigation make digital interactions comfortable instead of stressful.
+                The focus is independence—allowing seniors to use online tools confidently without feeling overwhelmed.
+                Eldercart transforms online shopping into a stress‑free and enjoyable experience.
+            </p>
+
+            <p>
+                Finding trustworthy products is a challenge for many elderly individuals. Websites often overload
+                    <!-- Existing content -->
+                high‑quality products that improve comfort, mobility, and daily living. Every item is carefully
+                selected to ensure safety and usefulness. With fewer but better choices, seniors can shop confidently.
+            </p>
+                <!-- nav-discount.js removed -->
+
+            <p>
+                The digital world moves fast, but not everyone wants that. Seniors prefer calm designs with readable
+                fonts and simple navigation. Eldercart respects this need and creates a peaceful browsing environment.
+                There is no rush, no pressure, and no confusing layout. Seniors can read at their own pace, compare
+                products, and make decisions comfortably. This boosts confidence and builds trust in technology.
+            </p>
+
+            <p>
+                For many seniors, shopping outside becomes difficult due to mobility issues or long travel. Eldercart
+                brings the entire store to their home. With easy browsing, clear descriptions, and safe checkout,
+                seniors can shop independently without relying on others. This independence strengthens dignity and
+                gives them control over their daily needs.
+            </p>
+
+            <p>
+                Eldercart’s future includes helpful features like medication reminders, personalized suggestions,
+                easy tutorials, and one‑touch assistance. The goal is to build not just a store, but a supportive
+                digital companion for elderly individuals—one that respects their pace, understands their needs,
+                and offers comfort and guidance every step of the way.
+            </p>
+        </div>
+
+        <!-- ============= HINDI ============= -->
+        <div id="hi" class="lang-section" style="display:none;">
+            <p>
+                Eldercart को इस सोच के साथ बनाया गया कि बुज़ुर्गों को ऐसी तकनीक मिले जो सरल, साफ़ और समझने में आसान हो।
+                तेज़ और भरी‑भरी वेबसाइटें बुज़ुर्गों को उलझन में डाल देती हैं, इसलिए Eldercart धीमी गति, बड़े बटन और
+                आरामदायक डिज़ाइन पर ध्यान देता है। इसका उद्देश्य बुज़ुर्गों को तनाव से मुक्त ऑनलाइन अनुभव देना है ताकि
+                वे खुद निर्णय ले सकें और आत्मनिर्भर महसूस करें।
+            </p>
+
+            <p>
+                अक्सर बुज़ुर्गों को असली और भरोसेमंद प्रोडक्ट ढूँढने में कठिनाई होती है। कई वेबसाइटें अनावश्यक आइटमों
+                से भरी होती हैं। Eldercart केवल उन्हीं वस्तुओं को दिखाता है जो उपयोगी, सुरक्षित और गुणवत्तापूर्ण हों।
+                इससे बुज़ुर्गों को सही उत्पाद चुनने में आसानी होती है और भ्रम भी नहीं होता।
+            </p>
+
+            <p>
+                डिजिटल दुनिया तेज़ है, लेकिन बुज़ुर्ग शांत और स्पष्ट डिज़ाइन पसंद करते हैं। Eldercart बड़े अक्षरों,
+                हल्के रंगों और सरल नेविगेशन के साथ एक आरामदायक वातावरण बनाता है। यहाँ कोई जल्दबाज़ी नहीं, कोई दबाव नहीं—
+                बुज़ुर्ग अपने हिसाब से पढ़ सकते हैं, समझ सकते हैं और चुन सकते हैं। यह उन्हें आत्मविश्वास देता है।
+            </p>
+
+            <p>
+                उम्र बढ़ने के साथ बाहर जाकर खरीदारी करना कठिन हो जाता है। Eldercart घर बैठे खरीदारी की सुविधा देता है,
+                जहाँ बुज़ुर्ग आसानी से प्रोडक्ट देख सकते हैं, पढ़ सकते हैं और बिना किसी मदद के ऑर्डर कर सकते हैं। यह
+                सुविधा उन्हें स्वतंत्रता और आत्मसम्मान देती है।
+            </p>
+
+            <p>
+                आने वाले समय में Eldercart दवाइयों की याद दिलाने, स्वास्थ्य आधारित सुझाव, सरल ट्यूटोरियल और व्यक्तिगत
+                सहायता जैसे फीचर्स भी जोड़ेगा। उद्देश्य केवल एक वेबसाइट नहीं, बल्कि बुज़ुर्गों के लिए एक भरोसेमंद और
+                सहायक डिजिटल साथी बनाना है।
+            </p>
+        </div>
+
+        <!-- ============= PUNJABI ============= -->
+        <div id="pa" class="lang-section" style="display:none;">
+            <p>
+                Eldercart ਦਾ ਮਕਸਦ ਬਜ਼ੁਰਗਾਂ ਲਈ ਇੱਕ ਸਾਫ਼, ਹੌਲੀ ਅਤੇ ਆਸਾਨ ਤਰੀਕੇ ਨਾਲ ਚੱਲਣ ਵਾਲਾ ਪਲੇਟਫਾਰਮ ਬਣਾਉਣਾ ਹੈ।
+                ਆਜਕੱਲ ਦੀਆਂ ਵੈੱਬਸਾਈਟਾਂ ਤੇਜ਼ ਅਤੇ ਭਰੀਆਂ ਹੋਈਆਂ ਹੁੰਦੀਆਂ ਹਨ, ਪਰ ਬਜ਼ੁਰਗ ਸਾਦਗੀ ਪਸੰਦ ਕਰਦੇ ਹਨ।
+                Eldercart ਵੱਡੇ ਬਟਨ, ਸਾਫ਼ ਲੇਆਉਟ ਅਤੇ ਆਰਾਮਦਾਇਕ ਨੇਵੀਗੇਸ਼ਨ ਦੇ ਨਾਲ ਇੱਕ ਸੁਹਾਵਣਾ ਤਜਰਬਾ ਦਿੰਦਾ ਹੈ।
+            </p>
+
+            <p>
+                ਬਜ਼ੁਰਗਾਂ ਨੂੰ ਅਕਸਰ ਚੰਗੀਆਂ ਅਤੇ ਲਾਭਦਾਇਕ ਚੀਜ਼ਾਂ ਲੱਭਣ ਵਿੱਚ ਮੁਸ਼ਕਲ ਹੁੰਦੀ ਹੈ। Eldercart ਸਿਰਫ਼ ਉਹੀ ਉਤਪਾਦ
+                ਦਿਖਾਉਂਦਾ ਹੈ ਜੋ ਬਜ਼ੁਰਗਾਂ ਦੀ ਜ਼ਿੰਦਗੀ ਆਸਾਨ ਬਣਾਉਣ ਵਿੱਚ ਸਹਾਇਕ ਹੁੰਦੇ ਹਨ। ਹਰ ਉਤਪਾਦ ਦੀ ਜਾਂਚ ਕੀਤੀ ਜਾਂਦੀ ਹੈ,
+                ਜਿਸ ਨਾਲ ਖਰੀਦਦਾਰੀ ਆਸਾਨ ਅਤੇ ਭਰੋਸੇਯੋਗ ਬਣ ਜਾਂਦੀ ਹੈ।
+            </p>
+
+            <p>
+                ਡਿਜ਼ਿਟਲ ਦੁਨੀਆ ਬਹੁਤ ਤੇਜ਼ ਹੈ, ਪਰ ਬਜ਼ੁਰਗ ਹੌਲੀ, ਸਪਸ਼ਟ ਅਤੇ ਠੰਢੇ ਡਿਜ਼ਾਈਨ ਨੂੰ ਤਰਜੀਹ ਦਿੰਦੇ ਹਨ। Eldercart
+                ਉਨ੍ਹਾਂ ਨੂੰ ਸ਼ਾਂਤ ਤਰੀਕੇ ਨਾਲ ਵੇਖਣ, ਪੜ੍ਹਨ ਅਤੇ ਸਮਝਣ ਦੀ ਸੁਵਿਧਾ ਦਿੰਦਾ ਹੈ। ਕੋਈ ਭਟਕਾਵਾ ਨਹੀਂ, ਕੋਈ ਦਬਾਅ ਨਹੀਂ।
+            </p>
+
+            <p>
+                ਕਈ ਬਜ਼ੁਰਗਾਂ ਲਈ ਬਾਹਰ ਜਾ ਕੇ ਖਰੀਦਦਾਰੀ ਕਰਨਾ ਮੁਸ਼ਕਲ ਹੁੰਦਾ ਹੈ। Eldercart ਘਰ ਬੈਠੇ ਖਰੀਦਦਾਰੀ ਦੀ ਆਜ਼ਾਦੀ ਦਿੰਦਾ
+                ਹੈ। ਉਹ ਬਿਨਾਂ ਕਿਸੇ ਦੀ ਮਦਦ ਦੇ ਸਮਾਨ ਵੇਖ ਸਕਦੇ ਹਨ, ਜਾਣਕਾਰੀ ਪੜ੍ਹ ਸਕਦੇ ਹਨ ਅਤੇ ਆਸਾਨੀ ਨਾਲ ਆਰਡਰ ਕਰ ਸਕਦੇ ਹਨ।
+            </p>
+
+            <p>
+                ਭਵਿੱਖ ਵਿੱਚ Eldercart ਹੋਰ ਵੀ ਫੀਚਰ ਜੋੜੇਗਾ—ਦਵਾਈਆਂ ਦੀਆਂ ਯਾਦ ਦਿਹਾਣੀਆਂ, ਸਿਹਤ ਅਧਾਰਿਤ ਸੁਝਾਅ,
+                ਆਸਾਨ ਟਿਊਟੋਰਿਯਲ ਅਤੇ ਵਿਅਕਤੀਗਤ ਸਹਾਇਤਾ। ਇਸ ਦਾ ਟੀਚਾ ਬਜ਼ੁਰਗਾਂ ਲਈ ਇੱਕ ਪੂਰਾ ਡਿਜ਼ਿਟਲ ਸਹਾਇਕ ਬਣਨਾ ਹੈ।
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Language Switcher
+        document.getElementById("languageSwitcher").addEventListener("change", function () {
+            let lang = this.value;
+
+            document.getElementById("en").style.display = "none";
+            document.getElementById("hi").style.display = "none";
+            document.getElementById("pa").style.display = "none";
+
+            document.getElementById(lang).style.display = "block";
+        });
+
+        // USER LOGIN HANDLING
+        function checkUser() {
+            let user = JSON.parse(localStorage.getItem("elderUser"));
+
+            if (user) {
+                document.getElementById("loginBtn").style.display = "none";
+
+                document.getElementById("userNameBox").style.display = "inline-block";
+                document.getElementById("userNameBox").innerText = "👤 " + user.fullname;
+
+                document.getElementById("logoutBtn").style.display = "inline-block";
+                // make username clickable to go to account page
+                const nameBox = document.getElementById('userNameBox');
+                nameBox.style.cursor = 'pointer';
+                nameBox.onclick = function(){ window.location.href = 'account.html'; };
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem("elderUser");
+            // also clear cart on logout
+            try { localStorage.removeItem('elderCart'); } catch(e) {}
+            window.location.reload();
+        }
+
+        checkUser();
+    </script>
+
+    <script>
+        // rotating discount messages under ELDERCART title
+        (function(){
+            const messages = [
+                'Its time for your comfort 60+ (20% Discount!)','A small Thank you for a lifetime of wisdom 70+ (35% Discount!)','A gentle Thank you for your blessing - special 80+ saving (45% Discount!)'
+            ];
+            // colors to rotate with messages: blue, red, green (high contrast for background)
+            const colors = ['#0b3d91', '#c0392b', '#1e8449'];
+            let idx = 0;
+            const el = document.getElementById('discountRotator');
+            if(!el) return;
+            // use an inner span to perform slide animations
+            el.innerHTML = `<span class="rotator-inner">${messages[0]}</span>`;
+            const inner = el.querySelector('.rotator-inner');
+            // initial color for the first message
+            inner.style.color = colors[0];
+            const slideDuration = 480; // ms for slide animation
+            setInterval(()=>{
+                // slide current text to the left and fade it slightly
+                inner.style.transition = `transform ${slideDuration}ms cubic-bezier(.2,.9,.2,1), opacity ${Math.floor(slideDuration/3)}ms linear`;
+                inner.style.transform = 'translateX(-120%)';
+                inner.style.opacity = '0';
+
+                // after it moved out, replace text and position off to the right, then slide in
+                setTimeout(()=>{
+                    idx = (idx+1) % messages.length;
+                    inner.innerText = messages[idx];
+                    // update color to match message
+                    inner.style.color = colors[idx];
+                    // place it off-screen to the right without a transition
+                    inner.style.transition = 'none';
+                    inner.style.transform = 'translateX(120%)';
+                    inner.style.opacity = '0';
+                    // force reflow so the browser registers the new position
+                    void inner.offsetWidth;
+                    // animate into place
+                    inner.style.transition = `transform ${slideDuration}ms cubic-bezier(.2,.9,.2,1), opacity ${Math.floor(slideDuration/3)}ms linear`;
+                    inner.style.transform = 'translateX(0)';
+                    inner.style.opacity = '1';
+                }, slideDuration);
+            }, 5000);
+        })();
+    </script>
+
+    <!-- background image applied via CSS: old.png -->
+
+</body>
+
+</html>

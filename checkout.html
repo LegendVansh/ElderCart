@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eldercart - Checkout</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial, sans-serif;
+    background:#f7efe3;
+    font-weight:bold;
+}
+
+/* NAVBAR */
+.navbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:#8a4616;
+    padding:12px 20px;
+}
+.navbar img{height:90px;}
+.nav-right{
+    display:flex;
+    gap:15px;
+    align-items:center;
+}
+.nav-right a{
+    background:white;
+    padding:10px 18px;
+    color:#8a4616;
+    text-decoration:none;
+    border-radius:6px;
+}
+
+/* PAGE */
+h1{
+    text-align:center;
+    color:#8a4616;
+    margin:20px 0;
+}
+.main{
+    width:95%;
+    margin:auto;
+    display:grid;
+    grid-template-columns:2fr 1fr;
+    gap:25px;
+}
+
+/* BOX */
+.box{
+    background:white;
+    border:3px solid #8a4616;
+    border-radius:12px;
+    padding:20px;
+}
+input, select{
+    box-sizing: border-box;
+    width: calc(100% - 12px); /* slightly narrower so inputs don't touch the box border */
+    padding:10px;
+    margin:8px 0;
+    font-size:16px;
+}
+label{margin-top:10px;display:block;}
+
+/* PAYMENT */
+.payment-option{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin:10px 0;
+}
+
+    /* styled payment radio labels */
+    .payment-option input[type="radio"]{ position: absolute; opacity: 0; pointer-events: none; }
+    .payment-option label{
+        padding:8px 12px; border-radius:8px; border:2px solid #cfcfcf; cursor:pointer; user-select:none;
+        background:white; color:#333; transition:.18s; margin:0;
+    }
+    .payment-option input[type="radio"]:checked + label{
+        background:#8a4616; color:white; border-color:#8a4616;
+        box-shadow:0 8px 20px rgba(138,70,22,0.18);
+    }
+
+/* styled small toggle used for card/UPI choices (matches account page) */
+.pay-toggle{display:flex;gap:8px;margin-top:8px}
+.pay-toggle input{display:none}
+.pay-toggle label{padding:10px 14px;border-radius:8px;border:2px solid #dcdcdc;cursor:pointer;background:white;color:#333;flex:1;text-align:center}
+.pay-toggle input:checked + label{background:linear-gradient(135deg,#8a4616,#6b2f12);color:white;border-color:#8a4616;box-shadow:0 8px 24px rgba(138,70,22,0.16)}
+
+/* BUTTON */
+button{
+    width:100%;
+    padding:14px;
+    background:#b0332a;
+    color:white;
+    font-size:20px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+.success{
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+    background:#2ecc71;
+    color:white;
+    font-size:40px;
+    animation:pop 0.6s ease;
+}
+@keyframes pop{
+    from{transform:scale(0.6);opacity:0;}
+    to{transform:scale(1);opacity:1;}
+}
+.order-overlay{
+    position:fixed;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(0,0,0,0.35);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity 240ms ease;
+    z-index:9999;
+}
+.order-overlay.visible{opacity:1;pointer-events:auto}
+.order-popup{border:4px solid #8a4616;background:#fff;border-radius:12px;padding:22px 20px;width:360px;box-shadow:0 18px 40px rgba(0,0,0,0.24);transform:translateY(12px) scale(.6);opacity:0;transition:transform 420ms cubic-bezier(.2,.9,.2,1),opacity 260ms ease;text-align:center}
+.order-overlay.visible .order-popup{transform:translateY(0) scale(1);opacity:1}
+.order-popup h3{margin:6px 0 8px 0;color:#8a4616;font-size:20px}
+.order-code{margin-top:8px;font-weight:bold;color:#333;font-size:16px}
+.order-timer{margin-top:10px;color:#666;font-size:14px}
+</style>
+</head>
+
+<body>
+
+<div class="navbar">
+    <a href="index.html"><img src="logo.png"></a>
+    <div class="nav-right">
+        <a href="index.html">HOME</a>
+        <a href="products.html">PRODUCTS</a>
+        <a href="cart.html">CART</a>
+    </div>
+</div>
+
+<h1>CHECKOUT</h1>
+
+<div class="main" id="checkoutPage">
+
+<!-- LEFT -->
+    <div class="box">
+    <h2>Delivery Details</h2>
+
+    <input id="fullName" required placeholder="Full Name">
+    <input id="house" required placeholder="House / Apartment No">
+    <input id="landmark" required placeholder="Landmark">
+    <input id="pincode" required placeholder="Pincode" maxlength="6" inputmode="numeric" pattern="[0-9]{6}">
+
+    <select id="state" required>
+        <option value="">Select State</option>
+        <option>Delhi</option>
+        <option>Punjab</option>
+        <option>Maharashtra</option>
+        <option>Uttar Pradesh</option>
+        <option>Haryana</option>
+        <option>Rajasthan</option>
+        <option>Gujarat</option>
+    </select>
+
+    <h2>Payment Method</h2>
+
+    <div class="payment-option">
+        <input type="radio" id="payCOD" name="pay" value="cod" checked onclick="selectCOD()">
+        <label for="payCOD">Cash on Delivery</label>
+    </div>
+
+    <div class="payment-option">
+        <input type="radio" id="payOnline" name="pay" value="online" onclick="selectOnline()">
+        <label for="payOnline">Online Payment</label>
+    </div>
+
+    <div class="payment-option">
+        <input type="radio" id="payElder" name="pay" value="elderMoney" onclick="selectElder()">
+        <label for="payElder">Elder Money</label>
+    </div>
+
+    <div id="onlineBox" style="display:none;">
+        <div style="margin-bottom:8px;">
+            <label style="font-weight:700">Online Method</label>
+            <div class="pay-toggle" style="margin-top:6px">
+                <input type="radio" id="onlineCard" name="onlineType" value="card" checked>
+                <label for="onlineCard">Card</label>
+                <input type="radio" id="onlineUpi" name="onlineType" value="upi">
+                <label for="onlineUpi">UPI</label>
+            </div>
+        </div>
+        <div id="cardFields">
+            <input id="card" placeholder="Card Number" inputmode="numeric" maxlength="19">
+            <input id="expiry" placeholder="MM/YY" maxlength="5" inputmode="numeric">
+            <input id="cvv" placeholder="CVV" inputmode="numeric" maxlength="3">
+        </div>
+        <div id="upiFields" style="display:none;">
+            <input id="onlineUpiId" placeholder="your@upi">
+        </div>
+    </div>
+</div>
+
+<!-- RIGHT -->
+<div class="box" id="summary"></div>
+
+</div>
+
+<script>
+let cart = JSON.parse(localStorage.getItem("elderCart")) || [];
+let user = JSON.parse(localStorage.getItem("elderUser"));
+
+// If user missing, show a signup prompt modal (styled like the order popup but without the tick)
+if (!user) {
+    // create or show the signup prompt overlay
+    (function showSignupPrompt(){
+        let overlay = document.getElementById('signupPromptOverlay');
+        const message = "It looks like you didn't signed up yet. Sign up to checkout!";
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'signupPromptOverlay';
+            overlay.className = 'order-overlay';
+            overlay.setAttribute('aria-hidden','true');
+            overlay.innerHTML = `
+                <div class="order-popup" role="dialog" aria-modal="true" aria-label="Sign up required">
+                    <h3 style="color:#8a4616;">Sign Up Required</h3>
+                    <div style="margin:10px 0;color:#333;font-size:16px;">${message}</div>
+                    <div style="display:flex;gap:12px;justify-content:center;margin-top:14px;">
+                        <button id="signupConfirmBtn" style="min-width:120px;padding:10px 12px;background:#8a4616;color:#fff;border-radius:8px;border:none;cursor:pointer;">Sign Up</button>
+                        <button id="signupCancelBtn" style="min-width:120px;padding:10px 12px;background:#ddd;color:#333;border-radius:8px;border:none;cursor:pointer;">Cancel</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+
+            // attach handlers
+            overlay.querySelector('#signupConfirmBtn').addEventListener('click', function(){
+                window.location.href = 'signup.html';
+            });
+            overlay.querySelector('#signupCancelBtn').addEventListener('click', function(){
+                overlay.classList.remove('visible');
+                overlay.setAttribute('aria-hidden','true');
+                // navigate away to home to avoid staying on checkout without signing in
+                setTimeout(()=>{ window.location.href = 'index.html'; }, 220);
+            });
+        }
+
+        // show overlay
+        void overlay.offsetWidth;
+        overlay.classList.add('visible');
+        overlay.setAttribute('aria-hidden','false');
+    })();
+}
+
+let ageDiscount = 0;
+if (user) {
+    if (user.age === "60+") ageDiscount = 20;
+    else if (user.age === "70+") ageDiscount = 35;
+    else if (user.age === "80+") ageDiscount = 45;
+}
+
+function loadSummary(){
+    // per-item discount calculation: apply ageDiscount to each item's base price and sum
+    const discountPercent = ageDiscount || 0;
+    let totalBase = 0;
+    let totalDiscount = 0;
+    let subtotalAfter = 0;
+
+    cart.forEach(i=>{
+        const baseUnit = (i.realPrice != null) ? i.realPrice : i.price;
+        const qty = i.qty || 1;
+        const itemBase = baseUnit * qty;
+        const itemDiscount = itemBase * (discountPercent / 100);
+        const itemAfter = itemBase - itemDiscount;
+
+        totalBase += itemBase;
+        totalDiscount += itemDiscount;
+        subtotalAfter += itemAfter;
+    });
+
+    const tax = subtotalAfter * 0.01;
+    const final = subtotalAfter + tax;
+
+    document.getElementById("summary").innerHTML = `
+        <h2>Order Summary</h2>
+        <p>Total Price: ₹${totalBase.toFixed(2)}</p>
+        <p>Discount (${discountPercent}% per item): -₹${totalDiscount.toFixed(2)}</p>
+        <p>Price After Discount: ₹${subtotalAfter.toFixed(2)}</p>
+        <p>Tax (1%): ₹${tax.toFixed(2)}</p>
+        <p>Delivery: FREE</p>
+        <hr>
+        <h3>Final Price: ₹${final.toFixed(2)}</h3>
+        <p>Estimated Delivery: 3–5 Days</p>
+        <button data-skip-global-popup onclick="placeOrder()">Order</button>
+    `;
+}
+
+function selectCOD(){
+    document.getElementById("onlineBox").style.display="none";
+    document.getElementById("card").required=false;
+    document.getElementById("expiry").required=false;
+    document.getElementById("cvv").required=false;
+}
+
+function selectOnline(){
+    document.getElementById("onlineBox").style.display="block";
+    document.getElementById("card").required=true;
+    document.getElementById("expiry").required=true;
+    document.getElementById("cvv").required=true;
+    // attach expiry auto-slash and input hints
+    const exp = document.getElementById('expiry');
+    if(exp && !exp._attached){
+        exp._attached = true;
+        exp.setAttribute('maxlength','5');
+        exp.addEventListener('input', function(e){
+            let v = this.value.replace(/[^0-9]/g,'');
+            if(v.length > 2) v = v.slice(0,2) + '/' + v.slice(2,4);
+            this.value = v;
+        });
+    }
+    // card input: allow spaces but validate on submit
+    const card = document.getElementById('card'); if(card){ card.setAttribute('inputmode','numeric'); card.setAttribute('maxlength','19'); }
+    const upi = document.getElementById('pincode'); // noop placeholder to avoid linter
+}
+
+// toggle online sub-method (card vs upi)
+document.addEventListener('change', function(e){
+    if(e.target && e.target.name === 'onlineType'){
+        if(e.target.value === 'upi'){
+            document.getElementById('cardFields').style.display = 'none';
+            document.getElementById('upiFields').style.display = 'block';
+        } else {
+            document.getElementById('cardFields').style.display = 'block';
+            document.getElementById('upiFields').style.display = 'none';
+        }
+    }
+});
+
+function selectElder(){
+    document.getElementById("onlineBox").style.display="none";
+    document.getElementById("card").required=false;
+    document.getElementById("expiry").required=false;
+    document.getElementById("cvv").required=false;
+}
+
+// helper to show errors (uses global popup if available)
+function showError(msg){
+    if(window.showGlobalPopup) showGlobalPopup('Error', msg, {duration:1800});
+    else alert(msg);
+}
+
+function placeOrder(){
+    // (cart will be cleared once order is confirmed below)
+
+        // validate required delivery fields before placing order
+        const fullName = document.getElementById('fullName').value.trim();
+        const house = document.getElementById('house').value.trim();
+        const landmark = document.getElementById('landmark').value.trim();
+        const pincode = document.getElementById('pincode').value.trim();
+        const state = document.getElementById('state').value;
+        if(!fullName || !house || !landmark || !pincode){
+            showError('Please fill all delivery fields.');
+            return;
+        }
+        // pincode must be exactly 6 numeric digits
+        if(!/^[0-9]{6}$/.test(pincode)){
+            showError('Pincode must be exactly 6 digits (numbers only).');
+            return;
+        }
+        if(!state){
+            showError('Please select a valid State.');
+            return;
+        }
+
+        // if online payment selected, validate card fields
+        const payMethod = document.querySelector('input[name="pay"]:checked')?.value || 'cod';
+        if(payMethod === 'online'){
+            const onlineType = document.querySelector('input[name="onlineType"]:checked')?.value || 'card';
+            if(onlineType === 'card'){
+                const cardRaw = document.getElementById('card').value.replace(/\s+/g,'');
+                const expiry = document.getElementById('expiry').value.trim();
+                const cvv = document.getElementById('cvv').value.trim();
+                if(!cardRaw || !expiry || !cvv){ showError('Please fill card details for online payment.'); return; }
+                if(!/^\d{16}$/.test(cardRaw)){ showError('Card number must be exactly 16 digits.'); return; }
+                if(!/^\d{3}$/.test(cvv)){ showError('CVV must be exactly 3 digits.'); return; }
+                if(!/^\d{2}\/\d{2}$/.test(expiry)){ showError('Expiry must be in MM/YY format.'); return; }
+            } else {
+                const upiVal = document.getElementById('onlineUpiId').value.trim();
+                if(!upiVal || !upiVal.endsWith('@upi')){ showError('UPI id must end with @upi'); return; }
+            }
+        }
+
+        // compute final price using per-item discount then 1% tax
+        const discountPercent = ageDiscount || 0;
+        let totalBase = 0;
+        let totalDiscount = 0;
+        let subtotalAfter = 0;
+
+        cart.forEach(i=>{
+            const baseUnit = (i.realPrice != null) ? i.realPrice : i.price;
+            const qty = i.qty || 1;
+            const itemBase = baseUnit * qty;
+            const itemDiscount = itemBase * (discountPercent / 100);
+            const itemAfter = itemBase - itemDiscount;
+
+            totalBase += itemBase;
+            totalDiscount += itemDiscount;
+            subtotalAfter += itemAfter;
+        });
+
+        const afterDiscount = subtotalAfter;
+        const tax = afterDiscount * 0.01;
+        const final = afterDiscount + tax;
+
+        // If payment is via Elder Money, check balance (reuse earlier `payMethod`)
+        if(payMethod === 'elderMoney'){
+            const u = JSON.parse(localStorage.getItem('elderUser'));
+            const bal = Number(u && u.elderMoney ? u.elderMoney : 0);
+            if(bal < final){
+                // insufficient
+                if(window.showGlobalPopup) showGlobalPopup('Insufficient Money', 'You do not have enough Elder Money for this order.', {duration:2200});
+                else showError('Insufficient Money');
+                return;
+            }
+            // deduct balance and save
+            u.elderMoney = (bal - final).toFixed(2);
+            try{ localStorage.setItem('elderUser', JSON.stringify(u)); } catch(e){}
+        }
+        // create or show overlay popup with order code, final price and countdown
+        let overlay = document.getElementById('orderOverlay');
+        const orderCode = Math.floor(100000 + Math.random() * 900000); // 6-digit
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'orderOverlay';
+            overlay.className = 'order-overlay';
+            overlay.setAttribute('aria-hidden','true');
+            overlay.innerHTML = `
+                <div class="order-popup" role="dialog" aria-modal="true" aria-label="Order placed">
+                    <h3>Order Placed Successfully!</h3>
+                    <div class="order-code">Order Code: <span id="orderCodeVal">${orderCode}</span></div>
+                    <div class="order-final">Final Price: <strong>₹<span id="orderFinalVal">${final.toFixed(2)}</span></strong></div>
+                    <div class="order-timer">Redirecting in <span id="orderTimer">5</span>s</div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+        } else {
+            // update values if overlay already exists
+            const codeEl = overlay.querySelector('#orderCodeVal');
+            const finalEl = overlay.querySelector('#orderFinalVal');
+            const timerEl = overlay.querySelector('#orderTimer');
+            if (codeEl) codeEl.innerText = orderCode;
+            if (finalEl) finalEl.innerText = final.toFixed(2);
+            if (timerEl) timerEl.innerText = '5';
+        }
+
+        // show it (scale from small to large)
+        void overlay.offsetWidth;
+        overlay.classList.add('visible');
+        overlay.setAttribute('aria-hidden','false');
+
+        // clear cart now that order has been placed
+        localStorage.removeItem("elderCart");
+
+        // countdown and redirect after 5 seconds
+        let remaining = 5;
+        const timerEl = document.getElementById('orderTimer');
+        const countdown = setInterval(function(){
+            remaining -= 1;
+            if (timerEl) timerEl.innerText = remaining;
+            if (remaining <= 0) {
+                clearInterval(countdown);
+                window.location.href = 'index.html';
+            }
+        }, 1000);
+
+    
+}
+
+loadSummary();
+</script>
+
+</body>
+    <!-- nav-discount.js removed -->
+</html>
