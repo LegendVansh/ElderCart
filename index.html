@@ -88,6 +88,7 @@
             background: #8a4616;
             color: white;
             transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
         }
 
         /* TITLE BOX */
@@ -339,7 +340,7 @@
             // use an inner span to perform slide animations
             el.innerHTML = `<span class="rotator-inner">${messages[0]}</span>`;
             const inner = el.querySelector('.rotator-inner');
-            // initial color for the first message
+            // initial color for the  first message
             inner.style.color = colors[0];
             const slideDuration = 480; // ms for slide animation
             setInterval(()=>{

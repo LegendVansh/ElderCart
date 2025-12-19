@@ -33,7 +33,15 @@ body{
     color:#8a4616;
     text-decoration:none;
     border-radius:6px;
+    transition: 0.25s;
 }
+.nav-right a:hover{
+    background: #8a4616;
+    color: white;
+    transform: scale(1.1);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+}
+
 
 /* PAGE */
 h1{
@@ -130,7 +138,7 @@ button{
     z-index:9999;
 }
 .order-overlay.visible{opacity:1;pointer-events:auto}
-.order-popup{border:4px solid #8a4616;background:#fff;border-radius:12px;padding:22px 20px;width:360px;box-shadow:0 18px 40px rgba(0,0,0,0.24);transform:translateY(12px) scale(.6);opacity:0;transition:transform 420ms cubic-bezier(.2,.9,.2,1),opacity 260ms ease;text-align:center}
+.order-popup{border:4px solid #8a4616;background:#fff;border-radius:12px;padding:22px 20px;width:360px;box-shadow:0 0 0 1px rgba(0,0,0,0.06), 0 24px 50px rgba(0,0,0,0.3);transform:translateY(12px) scale(.6);opacity:0;transition:transform 420ms cubic-bezier(.2,.9,.2,1),opacity 260ms ease;text-align:center}
 .order-overlay.visible .order-popup{transform:translateY(0) scale(1);opacity:1}
 .order-popup h3{margin:6px 0 8px 0;color:#8a4616;font-size:20px}
 .order-code{margin-top:8px;font-weight:bold;color:#333;font-size:16px}
@@ -188,6 +196,7 @@ button{
     <div class="payment-option">
         <input type="radio" id="payElder" name="pay" value="elderMoney" onclick="selectElder()">
         <label for="payElder">Elder Money</label>
+        <div id="elderBalanceMsg" style="font-size:15px;color:black;font-weight:bold;display:none;margin-left:15px;line-height:1.25"></div>
     </div>
 
     <div id="onlineBox" style="display:none;">
@@ -310,6 +319,7 @@ function selectCOD(){
     document.getElementById("card").required=false;
     document.getElementById("expiry").required=false;
     document.getElementById("cvv").required=false;
+    document.getElementById("elderBalanceMsg").style.display="none";
 }
 
 function selectOnline(){
@@ -317,6 +327,7 @@ function selectOnline(){
     document.getElementById("card").required=true;
     document.getElementById("expiry").required=true;
     document.getElementById("cvv").required=true;
+    document.getElementById("elderBalanceMsg").style.display="none";
     // attach expiry auto-slash and input hints
     const exp = document.getElementById('expiry');
     if(exp && !exp._attached){
@@ -351,6 +362,27 @@ function selectElder(){
     document.getElementById("card").required=false;
     document.getElementById("expiry").required=false;
     document.getElementById("cvv").required=false;
+
+    // Calculate total to show balance info
+    const discountPercent = ageDiscount || 0;
+    let subtotalAfter = 0;
+    cart.forEach(i=>{
+        const baseUnit = (i.realPrice != null) ? i.realPrice : i.price;
+        const qty = i.qty || 1;
+        const itemBase = baseUnit * qty;
+        const itemDiscount = itemBase * (discountPercent / 100);
+        subtotalAfter += (itemBase - itemDiscount);
+    });
+    const final = subtotalAfter * 1.01; // subtotal + 1% tax
+
+    const currentBal = Number(user && user.elderMoney ? user.elderMoney : 0);
+    const remaining = currentBal - final;
+    const msgBox = document.getElementById("elderBalanceMsg");
+    let html = `Current Balance: ₹${currentBal.toFixed(2)}<br>`;
+    if(remaining < 0) html += `<span style="color:red;font-weight:bold">INSUFFICIENT BALANCE</span>`;
+    else html += `Remaining Balance: ₹${remaining.toFixed(2)}`;
+    msgBox.innerHTML = html;
+    msgBox.style.display = "block";
 }
 
 // helper to show errors (uses global popup if available)
@@ -437,6 +469,11 @@ function placeOrder(){
             try{ localStorage.setItem('elderUser', JSON.stringify(u)); } catch(e){}
         }
         // create or show overlay popup with order code, final price and countdown
+        
+        let payMethodDisplay = "Cash on Delivery";
+        if(payMethod === 'online') payMethodDisplay = "Online Payment";
+        else if(payMethod === 'elderMoney') payMethodDisplay = "Elder Money";
+
         let overlay = document.getElementById('orderOverlay');
         const orderCode = Math.floor(100000 + Math.random() * 900000); // 6-digit
         if (!overlay) {
@@ -449,6 +486,8 @@ function placeOrder(){
                     <h3>Order Placed Successfully!</h3>
                     <div class="order-code">Order Code: <span id="orderCodeVal">${orderCode}</span></div>
                     <div class="order-final">Final Price: <strong>₹<span id="orderFinalVal">${final.toFixed(2)}</span></strong></div>
+                    <div style="margin-top:8px;color:#333">Payment Method: <span id="orderPayVal" style="font-weight:bold">${payMethodDisplay}</span></div>
+                    <div style="margin-top:8px;color:#8a4616;font-weight:bold">Delivery date: 23-24 december<br>by 8pm IST</div>
                     <div class="order-timer">Redirecting in <span id="orderTimer">5</span>s</div>
                 </div>
             `;
@@ -458,9 +497,11 @@ function placeOrder(){
             const codeEl = overlay.querySelector('#orderCodeVal');
             const finalEl = overlay.querySelector('#orderFinalVal');
             const timerEl = overlay.querySelector('#orderTimer');
+            const payEl = overlay.querySelector('#orderPayVal');
             if (codeEl) codeEl.innerText = orderCode;
             if (finalEl) finalEl.innerText = final.toFixed(2);
             if (timerEl) timerEl.innerText = '5';
+            if (payEl) payEl.innerText = payMethodDisplay;
         }
 
         // show it (scale from small to large)

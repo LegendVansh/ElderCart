@@ -3,7 +3,7 @@
     const css = `
     .global-popup-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.28);pointer-events:none;opacity:0;transition:opacity 220ms ease;z-index:10000}
     .global-popup-overlay.visible{opacity:1;pointer-events:auto}
-    .global-popup{background:linear-gradient(135deg,#ffffff,#f7fff7);border-radius:12px;padding:18px 22px;width:320px;text-align:center;box-shadow:0 18px 40px rgba(0,0,0,0.22);transform:translateY(10px) scale(.96);opacity:0;transition:transform 360ms cubic-bezier(.2,.9,.2,1),opacity 240ms ease}
+    .global-popup{background:linear-gradient(135deg,#ffffff,#f7fff7);border-radius:12px;padding:18px 22px;width:320px;text-align:center;box-shadow:0 0 0 1px rgba(0,0,0,0.06), 0 24px 50px rgba(0,0,0,0.3);transform:translateY(10px) scale(.96);opacity:0;transition:transform 360ms cubic-bezier(.2,.9,.2,1),opacity 240ms ease}
     .global-popup-overlay.visible .global-popup{transform:translateY(0) scale(1);opacity:1}
     .global-popup .dot{width:64px;height:64px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin:0 auto 10px;background:linear-gradient(135deg,#3fb36f,#1f8f4a);color:white;font-size:34px;box-shadow:0 10px 26px rgba(31,143,74,0.24)}
     .global-popup h4{margin:6px 0 2px 0;color:#143}
@@ -39,6 +39,11 @@
             o.classList.remove('visible');
             o.setAttribute('aria-hidden','true');
         }, opts.duration || 900);
+    };
+
+    // Override system alert
+    window.alert = function(msg){
+        window.showGlobalPopup('Alert', msg, { duration: 3000 });
     };
 
     // Global button listener
